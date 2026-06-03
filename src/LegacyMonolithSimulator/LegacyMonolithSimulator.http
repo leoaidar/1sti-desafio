@@ -1,0 +1,6 @@
+@LegacyMonolithSimulator_HostAddress = http://localhost:5235
+
+GET {{LegacyMonolithSimulator_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
