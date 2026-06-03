@@ -29,7 +29,7 @@ if (app.Environment.IsDevelopment())
   app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.MapPost("/api/v1/classify", async ([FromBody] DocumentClassificationRequest request, [FromServices] IDocumentClassifier classifier) =>
 {
@@ -37,4 +37,4 @@ app.MapPost("/api/v1/classify", async ([FromBody] DocumentClassificationRequest 
     return Results.Ok(resultado);
 });
 
-app.Run();
+app.Run();
