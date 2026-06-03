@@ -1,4 +1,4 @@
-@DocumentClassificationService_HostAddress = http://localhost:5000
+@DocumentClassificationService_HostAddress = http://localhost:5172
 
 # Testar a Classificação de Documento
 POST {{DocumentClassificationService_HostAddress}}/api/v1/classify
