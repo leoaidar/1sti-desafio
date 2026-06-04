@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using DocumentClassificationService.Interfaces;
 using DocumentClassificationService.Models;
+using DocumentClassificationService.Utils;
 
 namespace DocumentClassificationService.Services
 {
@@ -72,24 +73,8 @@ Não retorne NENHUM outro texto ou formatação além do JSON.";
         throw new Exception("A resposta gerada pelo modelo está vazia.");
       }
 
-      // Limpeza para evitar falha se o modelo retornar em formato markdown de código
-      resultContent = resultContent.Trim();
-      if (resultContent.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
-      {
-        resultContent = resultContent.Substring(7);
-        if (resultContent.EndsWith("```"))
-        {
-          resultContent = resultContent.Substring(0, resultContent.Length - 3);
-        }
-      }
-      else if (resultContent.StartsWith("```"))
-      {
-        resultContent = resultContent.Substring(3);
-        if (resultContent.EndsWith("```"))
-        {
-          resultContent = resultContent.Substring(0, resultContent.Length - 3);
-        }
-      }
+      // Limpeza abstraída para a classe utilitária JsonSanitizer (Regex Helper)
+      resultContent = JsonSanitizer.CleanMarkdown(resultContent);
 
       var options = new JsonSerializerOptions
       {
