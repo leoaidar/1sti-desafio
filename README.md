@@ -63,7 +63,7 @@ Quando enviamos uma requisição com a vertical `"Varejo"`, o proxy permite a pa
 
 ```bash
 curl -X 'POST' \
-  'http://localhost:5172/api/v1/classify' \
+  'http://localhost:5235/api/legacy/process-document' \
   -H 'accept: */*' \
   -H 'Content-Type: application/json' \
   -d '{
