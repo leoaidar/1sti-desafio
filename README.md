@@ -15,7 +15,7 @@ cd 1sti-desafio
 
 ```
 
-> **Alternativa:** Se você não estiver usando o Git via linha de comando no momento, pode baixar o projeto completo em formato ZIP clicando em **[Code > Download ZIP](https://www.google.com/search?q=https://github.com/leoaidar/1sti-desafio/archive/refs/heads/main.zip)** no topo desta página.
+> **Alternativa:** Se você não estiver usando o Git via linha de comando no momento, pode baixar o projeto completo em formato ZIP clicando em **[Code > Download ZIP](https://github.com/leoaidar/1sti-desafio/archive/refs/heads/main.zip)** no topo desta página.
 
 ---
 
