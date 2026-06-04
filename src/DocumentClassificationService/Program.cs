@@ -16,6 +16,7 @@ using DocumentClassificationService.Prompts;
 
 // 1. Inicializa o Serilog lendo do appsettings.json antes de subir o app
 Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
     .ReadFrom.Configuration(new ConfigurationBuilder()
         .AddJsonFile("appsettings.json")
         .Build())
@@ -48,6 +49,21 @@ try
             policyBuilder.WaitAndRetryAsync(retryCount, _ => TimeSpan.FromSeconds(1)));
 
   var app = builder.Build();
+
+  app.Use(async (context, next) =>
+  {
+      if (!context.Request.Headers.TryGetValue("X-Correlation-ID", out var correlationId))
+      {
+          correlationId = Guid.NewGuid().ToString();
+      }
+
+      context.Response.Headers["X-Correlation-ID"] = correlationId;
+
+      using (Serilog.Context.LogContext.PushProperty("CorrelationId", correlationId))
+      {
+          await next();
+      }
+  });
 
   // 3. Adiciona o log automático de requisições HTTP do Serilog
   app.UseSerilogRequestLogging();

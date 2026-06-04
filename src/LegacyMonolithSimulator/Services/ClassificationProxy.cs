@@ -31,8 +31,16 @@ namespace LegacyMonolithSimulator.Services
                     throw new InvalidOperationException("A URL do serviço externo não está configurada.");
                 }
 
+                // 1. Gera o Correlation ID para rastrear a transação de ponta a ponta
+                var correlationId = Guid.NewGuid().ToString();
+                Console.WriteLine($"[Trace] Iniciando transação [CorrID: [{correlationId}]] via IA externa.");
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
+                requestMessage.Content = JsonContent.Create(request);
+                requestMessage.Headers.Add("X-Correlation-ID", correlationId);
+
                 // Faz a requisição POST serializando o objeto request e já aguarda o retorno
-                var response = await _httpClient.PostAsJsonAsync(url, request);
+                var response = await _httpClient.SendAsync(requestMessage);
                 response.EnsureSuccessStatusCode();
 
                 // Desserializa a resposta
