@@ -23,6 +23,12 @@ cd 1sti-desafio
 
 A infraestrutura foi totalmente conteinerizada com Docker. Para subir o ecossistema completo (Monolito Simulado + Microsserviço de IA), execute na raiz do projeto:
 
+### Pré-requisitos
+*   [Docker Desktop](https://www.docker.com/products/docker-desktop) instalado e rodando.
+
+
+### Passos
+
 ```bash
 docker compose up --build
 
