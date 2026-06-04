@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  document-classification-service:
+    build:
+      context: ./src/DocumentClassificationService
+      dockerfile: Dockerfile
+    container_name: document_classification_service
+    ports:
+      - "5172:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - 1sti_network
+
+  legacy-monolith-simulator:
+    build:
+      context: ./src/LegacyMonolithSimulator
+      dockerfile: Dockerfile
+    container_name: legacy_monolith_simulator
+    ports:
+      - "5235:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # Roteamento interno do Docker (Service Discovery)
+      - ExternalServices__DocumentClassifierUrl=http://document-classification-service:8080/api/v1/classify
+    depends_on:
+      - document-classification-service
+    networks:
+      - 1sti_network
+
+networks:
+  1sti_network:
+    driver: bridge
