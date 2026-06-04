@@ -21,46 +21,76 @@ namespace LegacyMonolithSimulator.Services
 
         public async Task<DocumentClassificationResponse> ClassifyAsync(DocumentClassificationRequest request)
         {
+            bool isShadowModeEnabled = _configuration.GetValue<bool>("FeatureToggles:ShadowModeEnabled");
             bool useExternalService = _configuration.GetValue<bool>("FeatureToggles:UseExternalClassificationService");
             var allowedVerticals = _configuration.GetSection("FeatureToggles:AllowedVerticals").Get<List<string>>() ?? new List<string>();
             bool isVerticalAllowed = allowedVerticals.Any(v => string.Equals(v, request.SourceVertical, StringComparison.OrdinalIgnoreCase));
 
-            if (useExternalService && isVerticalAllowed)
-            {
-                string? url = _configuration["ExternalServices:DocumentClassifierUrl"];
-                if (string.IsNullOrEmpty(url))
-                {
-                    throw new InvalidOperationException("A URL do serviço externo não está configurada.");
-                }
-
-                // 1. Gera o Correlation ID para rastrear a transação de ponta a ponta
-                var correlationId = Guid.NewGuid().ToString();
-                Console.WriteLine($"[Trace] Iniciando transação [CorrID: [{correlationId}]] via IA externa.");
-
-                var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
-                requestMessage.Content = JsonContent.Create(request);
-                requestMessage.Headers.Add("X-Correlation-ID", correlationId);
-
-                // Faz a requisição POST serializando o objeto request e já aguarda o retorno
-                var response = await _httpClient.SendAsync(requestMessage);
-                response.EnsureSuccessStatusCode();
-
-                // Desserializa a resposta
-                var classificationResponse = await response.Content.ReadFromJsonAsync<DocumentClassificationResponse>();
-                
-                return classificationResponse ?? new DocumentClassificationResponse 
-                { 
-                    Classification = "UNKNOWN",
-                    Reasons = new List<string> { "Erro na desserialização da resposta do serviço." }
-                };
-            }
-
-            // Simulação da lógica antiga do monolito
-            return new DocumentClassificationResponse
+            // Resposta garantida do sistema legado
+            var legacyResponse = new DocumentClassificationResponse
             {
                 Classification = "LEGACY-SYSTEM",
                 Confidence = 1.0,
                 Reasons = new List<string> { "Processao pelo monolito de 12 anos..." }
+            };
+
+            if (isShadowModeEnabled)
+            {
+                try
+                {
+                    var aiResponse = await CallExternalServiceAsync(request, isShadowTraffic: true);
+                    
+                    if (aiResponse.Classification != legacyResponse.Classification)
+                    {
+                        Console.WriteLine($"[Shadow Traffic] Divergência detectada! Legado: {legacyResponse.Classification}, IA: {aiResponse.Classification}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Shadow Traffic] Erro isolado (não afetará o legado): {ex.Message}");
+                }
+
+                // Em Shadow Mode, SEMPRE retorna a resposta do legado
+                return legacyResponse;
+            }
+
+            // Roteamento Definitivo
+            if (useExternalService && isVerticalAllowed)
+            {
+                return await CallExternalServiceAsync(request, isShadowTraffic: false);
+            }
+
+            return legacyResponse;
+        }
+
+        private async Task<DocumentClassificationResponse> CallExternalServiceAsync(DocumentClassificationRequest request, bool isShadowTraffic)
+        {
+            string? url = _configuration["ExternalServices:DocumentClassifierUrl"];
+            if (string.IsNullOrEmpty(url))
+            {
+                throw new InvalidOperationException("A URL do serviço externo não está configurada.");
+            }
+
+            // 1. Gera o Correlation ID para rastrear a transação de ponta a ponta
+            var correlationId = Guid.NewGuid().ToString();
+            string logPrefix = isShadowTraffic ? "[Shadow Traffic]" : "[Trace]";
+            Console.WriteLine($"{logPrefix} Iniciando transação [CorrID: [{correlationId}]] via IA externa.");
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
+            requestMessage.Content = JsonContent.Create(request);
+            requestMessage.Headers.Add("X-Correlation-ID", correlationId);
+
+            // Faz a requisição POST serializando o objeto request e já aguarda o retorno
+            var response = await _httpClient.SendAsync(requestMessage);
+            response.EnsureSuccessStatusCode();
+
+            // Desserializa a resposta
+            var classificationResponse = await response.Content.ReadFromJsonAsync<DocumentClassificationResponse>();
+            
+            return classificationResponse ?? new DocumentClassificationResponse 
+            { 
+                Classification = "UNKNOWN",
+                Reasons = new List<string> { "Erro na desserialização da resposta do serviço." }
             };
         }
     }

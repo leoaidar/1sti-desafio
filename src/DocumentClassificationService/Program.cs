@@ -58,8 +58,8 @@ try
             .Handle<System.Net.Http.HttpRequestException>()
             .OrResult(msg => !msg.IsSuccessStatusCode)
             .CircuitBreakerAsync(
-                // Se um request faz (retryCount + 1) tentativas, abrimos o circuito após 2 ou 3 "requests completos" falharem.
-                handledEventsAllowedBeforeBreaking: (retryCount + 1) * 2,
+                // Se um request faz (retryCount + 1) tentativas, abrimos o circuito após 5 ou 6 "requests completos" falharem.
+                handledEventsAllowedBeforeBreaking: (retryCount + 1) * 5,
                 durationOfBreak: TimeSpan.FromSeconds(cbDurationSeconds),
                 onBreak: (outcome, timespan) =>
                 {
