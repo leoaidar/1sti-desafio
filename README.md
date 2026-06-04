@@ -1,8 +1,21 @@
-# 🚀 Arquitetura de Migração: Document Classification Challenge & Strangler Fig & Canary Release & Shadow Traffic & Circuit Breaker & Fallback & Observabilidade & Testes
+# 🚀 Desafio 1sti - Arquitetura de Migração: Document Classification Challenge & Strangler Fig & Canary Release & Shadow Traffic & Circuit Breaker & Fallback & Observabilidade & Testes
 
 Este repositório contém a prova de conceito para a modernização de um sistema legado de 12 anos. Implementamos uma arquitetura de transição segura que introduz uma Inteligência Artificial para classificação de documentos fiscais sem causar *downtime* ou afetar a experiência do usuário final.
 
 > 💡 **Nota Arquitetural:** Para uma visão aprofundada sobre a estratégia de migração, diagramas de fluxo, padrões utilizados (Strangler Fig, Canary Release, Shadow Traffic) e o racional de negócios, consulte nosso [Documento de Arquitetura Oficial (ARCHITECTURE.md)](ARCHITECTURE.md).
+
+---
+## 📥 Obtendo o Código-Fonte
+
+Para começar a explorar a arquitetura na sua máquina, o primeiro passo é clonar este repositório. Abra o seu terminal e execute:
+
+```bash
+git clone https://github.com/leoaidar/1sti-desafio.git
+cd 1sti-desafio
+
+```
+
+> **Alternativa:** Se você não estiver usando o Git via linha de comando no momento, pode baixar o projeto completo em formato ZIP clicando em **[Code > Download ZIP](https://www.google.com/search?q=https://github.com/leoaidar/1sti-desafio/archive/refs/heads/main.zip)** no topo desta página.
 
 ---
 
