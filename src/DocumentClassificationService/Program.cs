@@ -48,13 +48,18 @@ try
   int cbDurationSeconds = int.TryParse(cbDurationStr, out var dur) ? dur : 30;
 
   builder.Services.AddHttpClient<IDocumentClassifier, CerebrasAiClassifier>()
-      // Política 1 (Externa): Retry. Tenta novamente em caso de falha transiente.
-      .AddTransientHttpErrorPolicy(policyBuilder =>
-            policyBuilder.WaitAndRetryAsync(retryCount, _ => TimeSpan.FromSeconds(1)))
-      // Política 2 (Interna): Circuit Breaker. Se falhar 3 vezes seguidas, abre o circuito pelo tempo configurado.
-      .AddTransientHttpErrorPolicy(policyBuilder =>
-            policyBuilder.CircuitBreakerAsync(
-                handledEventsAllowedBeforeBreaking: 3,
+      // Política 1 (Externa): Retry. Tenta novamente em caso de QUALQUER falha HTTP (incluindo 401, 404, 500).
+      .AddPolicyHandler(Policy<System.Net.Http.HttpResponseMessage>
+            .Handle<System.Net.Http.HttpRequestException>()
+            .OrResult(msg => !msg.IsSuccessStatusCode)
+            .WaitAndRetryAsync(retryCount, _ => TimeSpan.FromSeconds(1)))
+      // Política 2 (Interna): Circuit Breaker. Se falhar algumas vezes seguidas, abre o circuito pelo tempo configurado.
+      .AddPolicyHandler(Policy<System.Net.Http.HttpResponseMessage>
+            .Handle<System.Net.Http.HttpRequestException>()
+            .OrResult(msg => !msg.IsSuccessStatusCode)
+            .CircuitBreakerAsync(
+                // Se um request faz (retryCount + 1) tentativas, abrimos o circuito após 2 ou 3 "requests completos" falharem.
+                handledEventsAllowedBeforeBreaking: (retryCount + 1) * 2,
                 durationOfBreak: TimeSpan.FromSeconds(cbDurationSeconds),
                 onBreak: (outcome, timespan) =>
                 {
