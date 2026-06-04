@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using DocumentClassificationService.Interfaces;
 
 namespace DocumentClassificationService.Prompts
@@ -11,8 +12,17 @@ namespace DocumentClassificationService.Prompts
     /// </summary>
     public class DocumentClassificationPromptBuilder : IPromptBuilder
     {
+        private readonly ILogger<DocumentClassificationPromptBuilder> _logger;
+
+        public DocumentClassificationPromptBuilder(ILogger<DocumentClassificationPromptBuilder> logger)
+        {
+            _logger = logger;
+        }
+
         public string BuildSystemPrompt()
         {
+            _logger.LogDebug("Construindo um prompt para classificação de documentos fiscais.");
+
             return @"Atue como um classificador especialista em documentos fiscais e tributários brasileiros.
 
 Analise o conteúdo do documento fornecido e retorne APENAS um objeto JSON válido, sem nenhum texto adicional, comentário ou formatação markdown.
@@ -33,9 +43,18 @@ Regras:
 
         public string BuildUserMessage(string? documentContent)
         {
-            var content = string.IsNullOrWhiteSpace(documentContent)
-                ? "(conteúdo não informado)"
-                : documentContent;
+            var isEmpty = string.IsNullOrWhiteSpace(documentContent);
+
+            if (isEmpty)
+            {
+                _logger.LogWarning("BuildUserMessage chamado com conteúdo vazio. O modelo receberá '(conteúdo não informado)'.");
+            }
+            else
+            {
+                _logger.LogDebug("Construindo user message com {CharCount} caracteres de conteúdo.", documentContent!.Length);
+            }
+
+            var content = isEmpty ? "(conteúdo não informado)" : documentContent!;
 
             return $"Classifique o seguinte documento:\n\n{content}";
         }
