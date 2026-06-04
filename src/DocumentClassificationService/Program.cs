@@ -40,13 +40,35 @@ try
   // Registra o PromptBuilder padrão para classificação de documentos.
   builder.Services.AddSingleton<IPromptBuilder, DocumentClassificationPromptBuilder>();
 
-  // 1. Resiliência de Infraestrutura (Apenas Retry)
+  // 1. Resiliência de Infraestrutura (Retry + Circuit Breaker)
   var retryCountStr = builder.Configuration["CerebrasAi:RetryCount"];
   int retryCount = int.TryParse(retryCountStr, out var count) ? count : 2;
+  
+  var cbDurationStr = builder.Configuration["CerebrasAi:CircuitBreakerDurationSeconds"];
+  int cbDurationSeconds = int.TryParse(cbDurationStr, out var dur) ? dur : 30;
 
   builder.Services.AddHttpClient<IDocumentClassifier, CerebrasAiClassifier>()
+      // Política 1 (Externa): Retry. Tenta novamente em caso de falha transiente.
       .AddTransientHttpErrorPolicy(policyBuilder =>
-            policyBuilder.WaitAndRetryAsync(retryCount, _ => TimeSpan.FromSeconds(1)));
+            policyBuilder.WaitAndRetryAsync(retryCount, _ => TimeSpan.FromSeconds(1)))
+      // Política 2 (Interna): Circuit Breaker. Se falhar 3 vezes seguidas, abre o circuito pelo tempo configurado.
+      .AddTransientHttpErrorPolicy(policyBuilder =>
+            policyBuilder.CircuitBreakerAsync(
+                handledEventsAllowedBeforeBreaking: 3,
+                durationOfBreak: TimeSpan.FromSeconds(cbDurationSeconds),
+                onBreak: (outcome, timespan) =>
+                {
+                    Log.Warning("[Circuit Breaker] Circuito ABERTO por {TotalSeconds} segundos. A API da IA está instável.", timespan.TotalSeconds);
+                },
+                onReset: () =>
+                {
+                    Log.Information("[Circuit Breaker] Circuito FECHADO. Comunicação com a IA restabelecida.");
+                },
+                onHalfOpen: () =>
+                {
+                    Log.Information("[Circuit Breaker] Circuito MEIO ABERTO. Testando se a IA voltou a responder...");
+                }
+            ));
 
   var app = builder.Build();
 
