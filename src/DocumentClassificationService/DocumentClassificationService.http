@@ -8,6 +8,6 @@ Accept: application/json
 {
   "documentId": "123",
   "documentType": "invoice",
-  "content": "texto extraído ou base64",
-  "sourceVertical": "retail"
+  "content": "Y2xvdGh0aWxsYWR2ZW50dXJlYWRqZWN0aXZlZHJlc3Njb3VsZG1pbGVldmVyeXRoaW4",
+  "sourceVertical": "Varejo"
 }

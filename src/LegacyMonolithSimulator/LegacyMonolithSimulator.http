@@ -1,6 +1,13 @@
 @LegacyMonolithSimulator_HostAddress = http://localhost:5235
 
-GET {{LegacyMonolithSimulator_HostAddress}}/weatherforecast/
+# Testar a Classificação no Monolito Legado 
+POST {{HostAddress}}/api/legacy/process-document
+Content-Type: application/json
 Accept: application/json
 
-###
+{
+  "documentId": "123",
+  "documentType": "invoice",
+  "content": "Y2xvdGh0aWxsYWR2ZW50dXJlYWRqZWN0aXZlZHJlc3Njb3VsZG1pbGVldmVyeXRoaW4",
+  "sourceVertical": "Varejo"
+}
