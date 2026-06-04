@@ -16,7 +16,7 @@ namespace DocumentClassificationService.Services
                     Classification = "NFE",
                     Confidence = 0.99,
                     ModelVersion = "v1-mock",
-                    Reasons = new List<string> { "matches invoice layout" }
+                    Reasons = new List<string> { "NFE nota fiscal" }
                 });
             }
 
@@ -25,7 +25,7 @@ namespace DocumentClassificationService.Services
                 Classification = "UNKNOWN",
                 Confidence = 0.0,
                 ModelVersion = "v1-mock",
-                Reasons = new List<string> { "unrecognized document type" }
+                Reasons = new List<string> { "Documento desconhecido!" }
             });
         }
     }

@@ -26,7 +26,7 @@ namespace DocumentClassificationService.Services
                     Classification = "IA-Analyzed",
                     Confidence = 0.95,
                     ModelVersion = "v1-cerebras",
-                    Reasons = new List<string> { "processed by Cerebras AI mockup" }
+                    Reasons = new List<string> { "processado por Cerebras AI" }
                 });
             }
             catch
