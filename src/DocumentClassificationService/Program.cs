@@ -29,12 +29,13 @@ if (app.Environment.IsDevelopment())
   app.UseSwaggerUI();
 }
 
+// desabilitado local warning
 //app.UseHttpsRedirection();
 
 app.MapPost("/api/v1/classify", async ([FromBody] DocumentClassificationRequest request, [FromServices] IDocumentClassifier classifier) =>
 {
-    var resultado = await classifier.ClassifyAsync(request);
-    return Results.Ok(resultado);
+    var result = await classifier.ClassifyAsync(request);
+    return Results.Ok(result);
 });
 
 app.Run();
