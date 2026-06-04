@@ -108,10 +108,16 @@ try
   app.Run();
 }
 catch (Exception ex)
+
 {
   Log.Fatal(ex, "Falha catastrófica ao iniciar a aplicação.");
 }
 finally
 {
   Log.CloseAndFlush();
+}
+
+namespace DocumentClassificationService
+{
+    public partial class Program { }
 }

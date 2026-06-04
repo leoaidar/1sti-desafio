@@ -23,6 +23,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+
 app.MapPost("/api/legacy/process-document", async ([FromBody] DocumentClassificationRequest request, [FromServices] ILegacyClassificationProxy proxy) =>
 {
     var result = await proxy.ClassifyAsync(request);
@@ -30,3 +31,8 @@ app.MapPost("/api/legacy/process-document", async ([FromBody] DocumentClassifica
 });
 
 app.Run();
+
+namespace LegacyMonolithSimulator
+{
+    public partial class Program { }
+}
