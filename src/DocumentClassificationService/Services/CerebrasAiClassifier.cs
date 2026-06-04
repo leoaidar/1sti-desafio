@@ -61,9 +61,25 @@ Não retorne NENHUM outro texto ou formatação além do JSON.";
 
                 var aiResponseJson = await response.Content.ReadAsStringAsync();
                 
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
                 using var jsonDoc = JsonDocument.Parse(aiResponseJson);
-                var resultContent = jsonDoc.RootElement
-                    .GetProperty("choices")[0]
+                
+                // Se a resposta vier do Fallback do Polly, ela não terá a raiz "choices"
+                if (!jsonDoc.RootElement.TryGetProperty("choices", out var choicesElement))
+                {
+                    var fallbackResponse = JsonSerializer.Deserialize<DocumentClassificationResponse>(aiResponseJson, options);
+                    if (fallbackResponse != null && fallbackResponse.Classification != null)
+                    {
+                        return fallbackResponse;
+                    }
+                    throw new Exception("Resposta inesperada do serviço ou do fallback.");
+                }
+
+                var resultContent = choicesElement[0]
                     .GetProperty("message")
                     .GetProperty("content")
                     .GetString();
@@ -75,7 +91,7 @@ Não retorne NENHUM outro texto ou formatação além do JSON.";
 
                 // Limpeza para evitar falha se o modelo retornar em formato markdown de código (```json ... ```)
                 resultContent = resultContent.Trim();
-                if (resultContent.StartsWith("```json"))
+                if (resultContent.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
                 {
                     resultContent = resultContent.Substring(7);
                     if (resultContent.EndsWith("```"))
@@ -91,11 +107,6 @@ Não retorne NENHUM outro texto ou formatação além do JSON.";
                         resultContent = resultContent.Substring(0, resultContent.Length - 3);
                     }
                 }
-
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
 
                 var finalResponse = JsonSerializer.Deserialize<DocumentClassificationResponse>(resultContent, options);
 
