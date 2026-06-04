@@ -9,6 +9,7 @@ using Polly.Extensions.Http;
 using DocumentClassificationService.Interfaces;
 using DocumentClassificationService.Services;
 using DocumentClassificationService.Models;
+using DocumentClassificationService.Prompts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,17 @@ builder.Services.AddSwaggerGen();
 
 // Registra o Mock para ser injetado no Fallback
 builder.Services.AddTransient<MockDocumentClassifier>();
+
+// Registra o PromptBuilder padrão para classificação de documentos.
+// Para trocar o comportamento do prompt de qualquer IA, basta criar uma nova
+// implementação de IPromptBuilder e alterar apenas esta linha.
+builder.Services.AddSingleton<IPromptBuilder, DocumentClassificationPromptBuilder>();
+
+// Se precisar de um classifier especializado pro Groq com um prompt diferente, só 2 passos, sem quebra nada existente:
+// 1. Crie uma nova implementação
+// public class GroqDocumentPromptBuilder : IPromptBuilder { ... }
+// 2. Registre aqui no Program.cs (troca de uma linha)
+// builder.Services.AddSingleton<IPromptBuilder, GroqDocumentPromptBuilder>();
 
 // 1. Resiliência de Infraestrutura (Apenas Retry)
 
