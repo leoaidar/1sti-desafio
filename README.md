@@ -45,6 +45,16 @@ Os serviços estarão disponíveis nas seguintes portas:
 
 O poder dessa arquitetura está no controle dinâmico do tráfego. Você pode simular diversos cenários de produção manipulando os arquivos `appsettings.json` de cada projeto.
 
+### 🗺️ Onde encontrar os arquivos de configuração?
+
+Antes de iniciar os testes dinâmicos, é importante saber onde estão as "chaves" do sistema. Todas as simulações de roteamento, feature flags e resiliência ocorrem através da alteração das variáveis nestes dois arquivos principais:
+
+* **Configurações do Monolito (Proxy e Roteamento):**
+    [src/LegacyMonolithSimulator/appsettings.json](src/LegacyMonolithSimulator/appsettings.json)
+
+* **Configurações do Microsserviço de IA (Modelos e Resiliência):**
+    [src/DocumentClassificationService/appsettings.json](src/DocumentClassificationService/appsettings.json)
+
 ⚠️ **Aviso:** Sempre que alterar os valores nos arquivos `appsettings.json`, reinicie os containers para garantir que as novas variáveis de ambiente sejam recarregadas:
 
 ```bash
