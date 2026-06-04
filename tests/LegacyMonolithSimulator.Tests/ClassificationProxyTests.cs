@@ -19,14 +19,14 @@ namespace LegacyMonolithSimulator.Tests
         public async Task ClassifyAsync_ShouldReturnLegacyMock_WhenFeatureToggleIsFalse()
         {
             // Arrange
-            var mockConfig = new Mock<IConfiguration>();
-            var mockSection = new Mock<IConfigurationSection>();
-            mockSection.Setup(s => s.Value).Returns("false");
-            mockConfig.Setup(c => c.GetSection("FeatureToggles:UseExternalClassificationService")).Returns(mockSection.Object);
+            var inMemorySettings = new Dictionary<string, string?> {
+                {"FeatureToggles:UseExternalClassificationService", "false"}
+            };
+            IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
 
             // Não precisamos nos preocupar com o HttpClient pois ele nem deve ser chamado
             var httpClient = new HttpClient();
-            var proxy = new ClassificationProxy(mockConfig.Object, httpClient);
+            var proxy = new ClassificationProxy(configuration, httpClient);
             var request = new DocumentClassificationRequest();
 
             // Act
@@ -41,13 +41,12 @@ namespace LegacyMonolithSimulator.Tests
         public async Task ClassifyAsync_ShouldCallExternalApi_WhenFeatureToggleIsTrue()
         {
             // Arrange
-            var mockConfig = new Mock<IConfiguration>();
-            
-            var mockToggleSection = new Mock<IConfigurationSection>();
-            mockToggleSection.Setup(s => s.Value).Returns("true");
-            mockConfig.Setup(c => c.GetSection("FeatureToggles:UseExternalClassificationService")).Returns(mockToggleSection.Object);
-            
-            mockConfig.Setup(c => c["ExternalServices:DocumentClassifierUrl"]).Returns("http://fake-api.com/classify");
+            var inMemorySettings = new Dictionary<string, string?> {
+                {"FeatureToggles:UseExternalClassificationService", "true"},
+                {"FeatureToggles:AllowedVerticals:0", "retail"},
+                {"ExternalServices:DocumentClassifierUrl", "http://fake-api.com/classify"}
+            };
+            IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
 
             var expectedResponse = new DocumentClassificationResponse
             {
@@ -69,8 +68,8 @@ namespace LegacyMonolithSimulator.Tests
                 });
 
             var httpClient = new HttpClient(mockHttpMessageHandler.Object);
-            var proxy = new ClassificationProxy(mockConfig.Object, httpClient);
-            var request = new DocumentClassificationRequest();
+            var proxy = new ClassificationProxy(configuration, httpClient);
+            var request = new DocumentClassificationRequest { SourceVertical = "retail" };
 
             // Act
             var result = await proxy.ClassifyAsync(request);
@@ -84,16 +83,15 @@ namespace LegacyMonolithSimulator.Tests
         public async Task ClassifyAsync_ShouldThrowException_WhenUrlIsNotConfigured()
         {
             // Arrange
-            var mockConfig = new Mock<IConfiguration>();
-            
-            var mockToggleSection = new Mock<IConfigurationSection>();
-            mockToggleSection.Setup(s => s.Value).Returns("true");
-            mockConfig.Setup(c => c.GetSection("FeatureToggles:UseExternalClassificationService")).Returns(mockToggleSection.Object);
-            
-            mockConfig.Setup(c => c["ExternalServices:DocumentClassifierUrl"]).Returns((string?)null); // URL nula
+            var inMemorySettings = new Dictionary<string, string?> {
+                {"FeatureToggles:UseExternalClassificationService", "true"},
+                {"FeatureToggles:AllowedVerticals:0", "retail"},
+                {"ExternalServices:DocumentClassifierUrl", null}
+            };
+            IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
 
-            var proxy = new ClassificationProxy(mockConfig.Object, new HttpClient());
-            var request = new DocumentClassificationRequest();
+            var proxy = new ClassificationProxy(configuration, new HttpClient());
+            var request = new DocumentClassificationRequest { SourceVertical = "retail" };
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() => proxy.ClassifyAsync(request));

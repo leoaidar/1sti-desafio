@@ -22,8 +22,10 @@ namespace LegacyMonolithSimulator.Services
         public async Task<DocumentClassificationResponse> ClassifyAsync(DocumentClassificationRequest request)
         {
             bool useExternalService = _configuration.GetValue<bool>("FeatureToggles:UseExternalClassificationService");
+            var allowedVerticals = _configuration.GetSection("FeatureToggles:AllowedVerticals").Get<List<string>>() ?? new List<string>();
+            bool isVerticalAllowed = allowedVerticals.Any(v => string.Equals(v, request.SourceVertical, StringComparison.OrdinalIgnoreCase));
 
-            if (useExternalService)
+            if (useExternalService && isVerticalAllowed)
             {
                 string? url = _configuration["ExternalServices:DocumentClassifierUrl"];
                 if (string.IsNullOrEmpty(url))
