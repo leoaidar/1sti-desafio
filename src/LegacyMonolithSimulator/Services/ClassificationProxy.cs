@@ -27,10 +27,15 @@ namespace LegacyMonolithSimulator.Services
             var allowedVerticals = _configuration.GetSection("FeatureToggles:AllowedVerticals").Get<List<string>>() ?? new List<string>();
             bool isVerticalAllowed = allowedVerticals.Any(v => string.Equals(v, request.SourceVertical, StringComparison.OrdinalIgnoreCase));
 
+            Console.WriteLine($"[ClassificationProxy] ClassifyAsync chamado para o Documento ID: '{request.DocumentId}', Tipo: '{request.DocumentType}', Vertical: '{request.SourceVertical}'");
+            Console.WriteLine($"[ClassificationProxy] Valores do appsettings -> ShadowModeEnabled: {isShadowModeEnabled}, UseExternalClassificationService: {useExternalService}, AllowedVerticals: [{string.Join(", ", allowedVerticals)}]");
+            Console.WriteLine($"[ClassificationProxy] Vertical '{request.SourceVertical}' está liberada nos Feature Toggles? {isVerticalAllowed}");
+
             // 1. ROTEAMENTO DEFINITIVO (MIGRAÇÃO CONCLUÍDA PARA A VERTICAL)
             // Se não estamos em modo sombra, e a vertical está liberada -> Rota 100% Nova (Zero custo legado)
             if (!isShadowModeEnabled && useExternalService && isVerticalAllowed)
             {
+              Console.WriteLine($"[ClassificationProxy] Roteamento DEFINITIVO ativado. Encaminhando transação diretamente para o serviço externo.");
               return await CallExternalServiceAsync(request, isShadowTraffic: false);
             }
 
@@ -39,6 +44,8 @@ namespace LegacyMonolithSimulator.Services
             // Pode ser porque a vertical não está liberada, ou porque estamos em Shadow Mode.
             // AGORA SIM, faz sentido gastar processamento rodando o sistema antigo.
             // ========================================================================
+
+            Console.WriteLine($"[ClassificationProxy] Rota oficial do Legado selecionada. Executando processamento legado.");
 
             var legacyResponse = new DocumentClassificationResponse
             {
