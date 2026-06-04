@@ -1,4 +1,4 @@
-# 🚀 Desafio 1sti - Arquitetura de Migração: Document Classification Challenge & Strangler Fig & Canary Release & Shadow Traffic & Circuit Breaker & Fallback & Observabilidade & Testes
+# 🚀 1sti - Classificação de Documentos 1.0: Arquitetura de Migração & Strangler Fig & Canary Release & Shadow Traffic & Circuit Breaker & Fallback & Observabilidade & Testes
 
 Este repositório contém a prova de conceito para a modernização de um sistema legado de 12 anos. Implementamos uma arquitetura de transição segura que introduz uma Inteligência Artificial para classificação de documentos fiscais sem causar *downtime* ou afetar a experiência do usuário final.
 
