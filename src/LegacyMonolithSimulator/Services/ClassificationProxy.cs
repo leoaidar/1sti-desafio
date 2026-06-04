@@ -23,43 +23,49 @@ namespace LegacyMonolithSimulator.Services
         {
             bool isShadowModeEnabled = _configuration.GetValue<bool>("FeatureToggles:ShadowModeEnabled");
             bool useExternalService = _configuration.GetValue<bool>("FeatureToggles:UseExternalClassificationService");
+
             var allowedVerticals = _configuration.GetSection("FeatureToggles:AllowedVerticals").Get<List<string>>() ?? new List<string>();
             bool isVerticalAllowed = allowedVerticals.Any(v => string.Equals(v, request.SourceVertical, StringComparison.OrdinalIgnoreCase));
 
-            // Resposta garantida do sistema legado
+            // 1. ROTEAMENTO DEFINITIVO (MIGRAÇÃO CONCLUÍDA PARA A VERTICAL)
+            // Se não estamos em modo sombra, e a vertical está liberada -> Rota 100% Nova (Zero custo legado)
+            if (!isShadowModeEnabled && useExternalService && isVerticalAllowed)
+            {
+              return await CallExternalServiceAsync(request, isShadowTraffic: false);
+            }
+
+            // ========================================================================
+            // Se o código chegou até aqui, significa que a resposta oficial SERÁ do Legado.
+            // Pode ser porque a vertical não está liberada, ou porque estamos em Shadow Mode.
+            // AGORA SIM, faz sentido gastar processamento rodando o sistema antigo.
+            // ========================================================================
+
             var legacyResponse = new DocumentClassificationResponse
             {
-                Classification = "LEGACY-SYSTEM",
-                Confidence = 1.0,
-                Reasons = new List<string> { "Processao pelo monolito de 12 anos..." }
+              Classification = "LEGACY-SYSTEM",
+              Confidence = 1.0,
+              Reasons = new List<string> { "Processado pelo monolito de 12 anos..." }
             };
 
+            // 2. SHADOW TRAFFIC (FASE DE TESTES SILENCIOSOS)
             if (isShadowModeEnabled)
             {
-                try
-                {
-                    var aiResponse = await CallExternalServiceAsync(request, isShadowTraffic: true);
-                    
-                    if (aiResponse.Classification != legacyResponse.Classification)
-                    {
-                        Console.WriteLine($"[Shadow Traffic] Divergência detectada! Legado: {legacyResponse.Classification}, IA: {aiResponse.Classification}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[Shadow Traffic] Erro isolado (não afetará o legado): {ex.Message}");
-                }
+              try
+              {
+                var aiResponse = await CallExternalServiceAsync(request, isShadowTraffic: true);
 
-                // Em Shadow Mode, SEMPRE retorna a resposta do legado
-                return legacyResponse;
+                if (aiResponse.Classification != legacyResponse.Classification)
+                {
+                  Console.WriteLine($"[Shadow Traffic] Divergência detectada! Legado: {legacyResponse.Classification}, IA: {aiResponse.Classification}");
+                }
+              }
+              catch (Exception ex)
+              {
+                Console.WriteLine($"[Shadow Traffic] Erro isolado (não afetará o legado): {ex.Message}");
+              }
             }
 
-            // Roteamento Definitivo
-            if (useExternalService && isVerticalAllowed)
-            {
-                return await CallExternalServiceAsync(request, isShadowTraffic: false);
-            }
-
+            // 3. FALLBACK NATURAL (Retorna o legado oficial)
             return legacyResponse;
         }
 
