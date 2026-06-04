@@ -51,6 +51,7 @@ namespace LegacyMonolithSimulator.Services
             {
               Classification = "LEGACY-SYSTEM",
               Confidence = 1.0,
+              ModelVersion = "legacy-v12",
               Reasons = new List<string> { "Processado pelo monolito de 12 anos..." }
             };
 
