@@ -5,6 +5,23 @@ Este repositório contém a prova de conceito para a modernização de um sistem
 > 💡 **Nota Arquitetural:** Para uma visão aprofundada sobre a estratégia de migração, diagramas de fluxo, padrões utilizados (Strangler Fig, Canary Release, Shadow Traffic) e o racional de negócios, consulte nosso [Documento de Arquitetura Oficial (ARCHITECTURE.md)](ARCHITECTURE.md).
 
 ---
+
+## 💻 Tecnologias e Padrões Utilizados
+
+*   **Linguagem & Framework:** C# 12 com .NET 8 (Minimal APIs)
+*   **Containerização:** Docker & Docker Compose
+*   **Resiliência (Tolerância a Falhas):** Polly (Políticas de *WaitAndRetry* e *CircuitBreaker*)
+*   **Observabilidade & Tracing:** Serilog com injeção de Contexto Distribuído (*Correlation ID*)
+*   **Padrões Arquiteturais:** *Strangler Fig*, *Canary Release*, *Shadow Traffic*, *Fallback*
+*   **Testes (Qualidade):**
+    *   **xUnit** (Framework Base)
+    *   **Moq** (Mocking Isolado, ex: `HttpMessageHandler`)
+    *   **WebApplicationFactory** (Para testes de Integração End-to-End em Memória)
+*   **Integração com IA:** Consumo de LLMs via REST (Cerebras AI)
+*   **Documentação da API:** Swagger/OpenAPI (Swashbuckle)
+
+---
+
 ## 📥 Obtendo o Código-Fonte
 
 Para começar a explorar a arquitetura na sua máquina, o primeiro passo é clonar este repositório. Abra o seu terminal e execute:
