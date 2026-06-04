@@ -50,9 +50,11 @@ O poder dessa arquitetura está no controle dinâmico do tráfego. Você pode si
 Antes de iniciar os testes dinâmicos, é importante saber onde estão as "chaves" do sistema. Todas as simulações de roteamento, feature flags e resiliência ocorrem através da alteração das variáveis nestes dois arquivos principais:
 
 * **Configurações do Monolito (Proxy e Roteamento):**
+  
     [src/LegacyMonolithSimulator/appsettings.json](src/LegacyMonolithSimulator/appsettings.json)
 
 * **Configurações do Microsserviço de IA (Modelos e Resiliência):**
+  
     [src/DocumentClassificationService/appsettings.json](src/DocumentClassificationService/appsettings.json)
 
 ⚠️ **Aviso:** Sempre que alterar os valores nos arquivos `appsettings.json`, reinicie os containers para garantir que as novas variáveis de ambiente sejam recarregadas:
@@ -82,25 +84,20 @@ No arquivo `src/DocumentClassificationService/appsettings.json`:
 
 ## 📡 Exemplos de Request e Response
 
-Faça as requisições apontando para a porta do **Microsserviço (5172)** ou do **Monolito (5235)** para ver o roteador em ação.
+Utilize a interface do **Swagger** acessando  [http://localhost:5235/swagger](http://localhost:5235/swagger) (Monolito) para realizar os testes abaixo. Basta copiar os *payloads* de Request e colar na área de execução.
 
 ### Cenário 1: Sucesso com a IA (Vertical Autorizada)
 
 Quando enviamos uma requisição com a vertical `"Varejo"`, o proxy permite a passagem e a IA classifica o documento com alta confiança.
 
-**Request:**
-
-```bash
-curl -X 'POST' \
-  'http://localhost:5235/api/legacy/process-document' \
-  -H 'accept: */*' \
-  -H 'Content-Type: application/json' \
-  -d '{
+**Request Payload:**
+```json
+{
   "documentId": "123",
   "documentType": "unknown",
   "content": "NOTA FISCAL DE SERVIÇOS ELETRÔNICA - NFS-e. Prestador: Aidar Enterprises. CNPJ: 12.345.678/0001-90. Valor: R$ 5.000,00. Descrição: Consultoria em desenvolvimento de software.",
   "sourceVertical": "varejo"
-}'
+}
 
 ```
 
@@ -121,7 +118,19 @@ curl -X 'POST' \
 
 ### Cenário 2: Roteamento para o Legado (Vertical Não Autorizada)
 
-Se enviarmos o mesmo payload, mas com a vertical `"financeiro"` (que não está no array de `AllowedVerticals`), a requisição nem encosta na IA, poupando custos, e devolve a resposta do monolito de 12 anos.
+Se enviarmos um *payload* com a vertical `"financeiro"` (que não está no array de `AllowedVerticals`), a requisição nem encosta na IA, poupando custos, e devolve a resposta do monolito de 12 anos.
+
+**Request Payload:**
+
+```json
+{
+  "documentId": "124",
+  "documentType": "invoice",
+  "content": "Fatura mensal de serviços de infraestrutura cloud referente ao mês atual.",
+  "sourceVertical": "financeiro"
+}
+
+```
 
 **Response (Monolito):**
 
@@ -139,7 +148,19 @@ Se enviarmos o mesmo payload, mas com a vertical `"financeiro"` (que não está 
 
 ### Cenário 3: Falha da IA e Acionamento do Fallback
 
-Se você configurou um modelo inválido no `appsettings` para simular uma queda da IA, o circuito é aberto e o Mock local assume instantaneamente.
+Mantenha a vertical autorizada (`"varejo"`). Antes de enviar a requisição, vá no arquivo `appsettings.json` do microsserviço e configure um `Model` inválido para simular uma queda na API da IA. O circuito abrirá após as retentativas e o Mock local assumirá a resposta.
+
+**Request Payload:**
+
+```json
+{
+  "documentId": "125",
+  "documentType": "unknown",
+  "content": "Texto fragmentado sem contexto identificável ou documento corrompido.",
+  "sourceVertical": "varejo"
+}
+
+```
 
 **Response (Fallback Mock):**
 
