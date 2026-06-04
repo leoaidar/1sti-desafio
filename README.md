@@ -60,6 +60,7 @@ Antes de iniciar os testes dinâmicos, é importante saber onde estão as "chave
 ⚠️ **Aviso:** Sempre que alterar os valores nos arquivos `appsettings.json`, reinicie os containers para garantir que as novas variáveis de ambiente sejam recarregadas:
 
 ```bash
+cd 1sti-desafio
 docker compose down
 docker compose up --build
 
@@ -77,6 +78,7 @@ No arquivo `src/LegacyMonolithSimulator/appsettings.json`:
 
 No arquivo `src/DocumentClassificationService/appsettings.json`:
 
+* (Modelo Bom) Temos 2 bons modelos hoje gratuitos com requests limitados que você pode variar, na chave `"Model"` pode ser `"gpt-oss-120b"` ou  `"zai-glm-4.7"` 
 * Troque o valor da chave `"Model"` de `"gpt-oss-120b"` (Modelo Bom) para `"llama3.1-8b"` (Modelo Ruim/Inexistente).
 * Ao fazer isso, você forçará a falha da IA. O **Polly** fará as retentativas e, após 3 falhas, abrirá o **Circuit Breaker**. A aplicação então acionará o **Fallback** local automaticamente, retornando a classificação segura sem derrubar o sistema.
 
